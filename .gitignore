@@ -1,6 +1,6 @@
 *.pyc
 .DS_Store
-django_aurora.egg-info/
+django_lionheart_helpers.egg-info/
 build/
 dist/
 lib/

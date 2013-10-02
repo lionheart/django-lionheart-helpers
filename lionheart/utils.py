@@ -16,6 +16,16 @@ class JSONResponse(HttpResponse):
                 mimetype='application/json',
                 status=200, *args, **kwargs)
 
+def timestamped_file_url(prefix):
+    def inner(instance, filename):
+        r = re.compile(r'[^\S]')
+        filename = r.sub('', filename)
+        now = datetime.datetime.now()
+        timestamp = int(time.time())
+        return '{0}/{1.year:04}/{1.month:02}/{1.day:02}/{2}/{3}'.format( \
+                prefix, now, timestamp, filename)
+    return inner
+
 def slugify(phrase):
     """
     Removes all non-important words to generate a meaningful slug.

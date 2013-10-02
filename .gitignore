@@ -1,0 +1,9 @@
+*.pyc
+.DS_Store
+django_aurora.egg-info/
+build/
+dist/
+lib/
+bin/
+include/
+src/

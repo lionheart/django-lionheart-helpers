@@ -7,6 +7,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.template.loader import render_to_string
 
+from redis import Redis
 import settings
 from django.conf import settings as django_settings
 

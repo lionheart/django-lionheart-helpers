@@ -9,6 +9,7 @@ from forms import ResetPasswordForm
 from forms import ResetPasswordRequestForm
 from utils import reverse_lazy
 import settings
+from redis import Redis
 
 app_label, model_name = settings.PRIMARY_USER_MODEL.split('.')
 GenericUser = get_model(app_label, model_name)

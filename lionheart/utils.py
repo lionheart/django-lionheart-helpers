@@ -7,7 +7,13 @@ import time
 from django.http import HttpResponse
 from django.utils.functional import lazy
 from django.core.urlresolvers import reverse
-from django.conf.urls.defaults import url
+try:
+    # Django 1.5
+    from django.conf.urls.defaults import url
+except ImportError:
+    # Django 1.6+
+    from django.conf.urls import url
+
 from django.views.generic.base import TemplateView
 
 class JSONResponse(HttpResponse):

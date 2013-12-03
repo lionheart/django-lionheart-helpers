@@ -17,7 +17,6 @@ def unauthenticated_users_only(fun):
     Decorator which redirects users to `settings.HOME_URL` when the user is not
     logged in.
     """
-    @wraps(fun)
     def resource(request, **kwargs):
         if request.user.is_authenticated():
             return HttpResponseRedirect(settings.HOME_URL)

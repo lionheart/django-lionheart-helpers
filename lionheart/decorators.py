@@ -33,6 +33,7 @@ def redirect(url):
     :type url: str
     """
     def k(fun):
+        @wraps(fun)
         def wrapper(request, *args, **kwargs):
             response = fun(request, *args, **kwargs)
             if type(response) == dict:
@@ -47,12 +48,14 @@ def render_json(fun):
     into a JSON string and sets the mimetype of the response to
     application/json.
     """
+    @wraps(fun)
     def wrapper(request, *args, **kwargs):
         return JSONResponse(fun(request, *args, **kwargs))
     return wrapper
 
 def render_to(template):
     def k(fun):
+        @wraps(fun)
         def wrapper(request, *args, **kwargs):
             context = fun(request, *args, **kwargs)
             if type(context) == dict:
@@ -80,6 +83,7 @@ def render(fun):
     """
     name = fun.__name__.replace("_", "/")
 
+    @wraps(fun)
     def wrapper(request, *args, **kwargs):
         context = fun(request, *args, **kwargs)
         if isinstance(context, dict):
@@ -107,6 +111,7 @@ def render_to(template):
             return {'name': "Steve Jobs"}
     """
     def decorator(fun):
+        @wraps(fun)
         def wrapper(request, *args, **kwargs):
             context = fun(request, *args, **kwargs)
             if isinstance(context, dict):
@@ -121,6 +126,7 @@ def formify(form_obj, url='/', save=False, tipsy_errors=False):
     TODO
     """
     def renderer(fun):
+        @wraps(fun)
         def wrapper(request, *args, **kwargs):
             if request.method == 'GET':
                 form = form_obj()

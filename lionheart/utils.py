@@ -17,11 +17,11 @@ except ImportError:
 from django.views.generic.base import TemplateView
 
 class JSONResponse(HttpResponse):
-    def __init__(self, content, mimetype='application/json', *args, **kwargs):
+    def __init__(self, content, content_type='application/json', *args, **kwargs):
         encoded_content = json.dumps(content)
         super(JSONResponse, self).__init__(
                 content=encoded_content,
-                mimetype='application/json',
+                content_type=content_type,
                 status=200, *args, **kwargs)
 
 def timestamped_file_url(prefix):

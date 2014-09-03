@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name = 'django-lionheart-helpers',
-    version = '1.0.5',
+    version = '1.1.0',
     url = 'http://lionheartsw.com',
     license = 'BSD',
     description = 'Django decorators and some other utilities.',

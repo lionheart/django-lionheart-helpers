@@ -1,8 +1,10 @@
-import unicodedata
-import re
-import json
 import datetime
+import json
+import random
+import re
+import string
 import time
+import unicodedata
 
 from django.http import HttpResponse
 from django.utils.functional import lazy
@@ -154,6 +156,14 @@ def home_url(logged_out_name, logged_in_name=None, app_name='app'):
 def status_204(request):
     """ Simple view which returns an empty 204 No Content response """
     return HttpResponse(status=204)
+
+def random_digits(length):
+    return ''.join(random.choice(string.digits) for _ in range(length))
+
+def random_string(length):
+    alphanumeric = string.letters + string.digits
+    return ''.join(random.choice(alphanumeric) for _ in range(length))
+
 
 reverse_lazy = lazy(reverse, str)
 

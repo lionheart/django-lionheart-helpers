@@ -36,37 +36,44 @@ def timestamped_file_url(prefix):
                 prefix, now, timestamp, filename)
     return inner
 
-def slugify(phrase):
+def slugify(phrase, simple=True):
     """
     Removes all non-important words to generate a meaningful slug.
     """
-    from nltk import pos_tag, word_tokenize
-    tokens = pos_tag(word_tokenize(phrase))
-    words = []
-    for token, pos in tokens:
-        if pos in [
-                'CD',
-                'IN',
-                'JJ',
-                'JJR',
-                'NN',
-                'NNP',
-                'VB',
-                'VBG',
-                'VBN',
-                'WRB']:
-            words.append(token)
-    phrase = " ".join(words)
-    symbols = re.compile(r'[^\w]')
-    dashes = re.compile(r'-+')
-    phrase = phrase.decode("unicode_escape")
-    phrase = unicodedata.normalize("NFKD", phrase)
-    phrase = phrase.encode("ascii", "ignore")
-    phrase = phrase.lower()
-    phrase = symbols.sub('-', phrase)
-    phrase = dashes.sub('-', phrase)
-    phrase = phrase.strip('-')
-    return phrase
+    if simple:
+        alphanumeric = re.compile(r'[^a-zA-Z0-9]+')
+        slug = alphanumeric.sub('-', phrase.lower()).strip('-')
+        if len(slug) == 0:
+            return random.choice(string.lowercase)
+        return slug
+    else:
+        from nltk import pos_tag, word_tokenize
+        tokens = pos_tag(word_tokenize(phrase))
+        words = []
+        for token, pos in tokens:
+            if pos in [
+                    'CD',
+                    'IN',
+                    'JJ',
+                    'JJR',
+                    'NN',
+                    'NNP',
+                    'VB',
+                    'VBG',
+                    'VBN',
+                    'WRB']:
+                words.append(token)
+        phrase = " ".join(words)
+        symbols = re.compile(r'[^\w]')
+        dashes = re.compile(r'-+')
+        phrase = phrase.decode("unicode_escape")
+        phrase = unicodedata.normalize("NFKD", phrase)
+        phrase = phrase.encode("ascii", "ignore")
+        phrase = phrase.lower()
+        phrase = symbols.sub('-', phrase)
+        phrase = dashes.sub('-', phrase)
+        phrase = phrase.strip('-')
+        return phrase
 
 def simple_url(path, view=None):
     """

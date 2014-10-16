@@ -172,6 +172,20 @@ def PasswordResetMixin(template="emails/password_reset.txt",
     return inner
 
 
+def formatted_total(instance, Model, key, prefix="formatted_"):
+    if key.startswith(prefix):
+        value = object.__getattribute__(instance, key.replace(prefix, ""))
+        if key == "formatted_tax":
+            if value == 0:
+                return "$0.00"
+            elif value is None:
+                return "-"
+
+        return "${:,.2f}".format(value)
+    else:
+        return super(Model, instance).__getattribute__(key)
+
+
 if django_settings.DEFAULT_FILE_STORAGE.endswith('Base64DatabaseStorage'):
     class UploadedFile(models.Model):
         filename = models.CharField(max_length=100)

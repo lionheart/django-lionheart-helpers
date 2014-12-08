@@ -1,4 +1,8 @@
-from django.conf.urls.defaults import patterns
+try:
+    from django.conf.urls.defaults import patterns
+except ImportError:
+    from django.conf.urls import patterns
+
 from utils import simple_url, template_url
 
 urlpatterns = patterns('lionheart.views',

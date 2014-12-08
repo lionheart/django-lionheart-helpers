@@ -194,4 +194,7 @@ if django_settings.DEFAULT_FILE_STORAGE.endswith('Base64DatabaseStorage'):
 
         def __unicode__(self):
             return self.filename
+else:
+    class UploadedFile():
+        pass
 

@@ -50,7 +50,12 @@ def render_json(fun):
     """
     @wraps(fun)
     def wrapper(request, *args, **kwargs):
-        return JSONResponse(fun(request, *args, **kwargs))
+        response = fun(request, *args, **kwargs)
+        try:
+            return JSONResponse(response)
+        except TypeError:
+            # The response isn't JSON serializable.
+            return response
     return wrapper
 
 def render_to(template):

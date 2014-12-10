@@ -18,8 +18,7 @@ setup(
     author_email=metadata.__email__,
     packages=['lionheart'],
     install_requires=[
-        'django',
-        'bcrypt'
+        'django'
     ],
 )
 

@@ -7,7 +7,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.template.loader import render_to_string
 
-from redis import Redis
 import settings
 from django.conf import settings as django_settings
 
@@ -145,30 +144,33 @@ def PasswordResetMixin(template="emails/password_reset.txt",
             abstract = True
 
         def send_password_reset_email(self):
-            """
-            Send a password reset email to the user.
-            """
-            r = Redis()
-            code = md5(str(random.random())).digest().encode('base-64')
+            if settings.REDIS_AVAILABLE:
+                """
+                Send a password reset email to the user.
+                """
+                r = settings.Redis()
+                code = md5(str(random.random())).digest().encode('base-64')
 
-            non_alphanumeric = re.compile(r'[^a-zA-Z0-9]')
-            code = non_alphanumeric.sub('', code)
-            r.set(code, self.id)
+                non_alphanumeric = re.compile(r'[^a-zA-Z0-9]')
+                code = non_alphanumeric.sub('', code)
+                r.set(code, self.id)
 
-            message = render_to_string(template, {
-                'user': self,
-                'code': code,
-                'BASE_URL': settings.BASE_URL })
+                message = render_to_string(template, {
+                    'user': self,
+                    'code': code,
+                    'BASE_URL': settings.BASE_URL })
 
-            # Now send out the password reset email
-            msg = EmailMultiAlternatives(subject, message, sender, [
-                getattr(self, recipient_attribute, None)])
+                # Now send out the password reset email
+                msg = EmailMultiAlternatives(subject, message, sender, [
+                    getattr(self, recipient_attribute, None)])
 
-            try:
-                msg.send()
-            except:
-                pass
-            return True
+                try:
+                    msg.send()
+                except:
+                    pass
+                return True
+            else:
+                raise Exception("Redis must be installed to use this feature.")
     return inner
 
 

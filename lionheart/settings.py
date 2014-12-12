@@ -11,3 +11,10 @@ if hasattr(settings, 'REDIS'):
 HOME_URL = getattr(settings, 'HOME_URL', '/')
 PRIMARY_USER_MODEL = getattr(settings, 'PRIMARY_USER_MODEL', 'app.User')
 
+try:
+    from redis import Redis
+except ImportError:
+    REDIS_AVAILABLE = False
+else:
+    REDIS_AVAILABLE = True
+

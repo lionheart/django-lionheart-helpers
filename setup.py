@@ -1,7 +1,7 @@
 #!/usr/bin/env/python
 # -*- coding: utf-8 -*-
 
-import metadata
+from lionheart import metadata
 
 try:
     from setuptools import setup

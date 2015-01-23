@@ -200,3 +200,23 @@ else:
     class UploadedFile():
         pass
 
+
+class Orderable(models.Model):
+    position = models.IntegerField(default=0)
+
+    class Meta():
+        abstract = True
+        ordering = ('position',)
+
+    def save(self, *args, **kwargs):
+        model = self.__class__
+
+        if self.position is None:
+            first = model.objects.order_by('-position').first()
+            if first is None:
+                self.position = 0
+            else:
+                self.position = first.position + 1
+
+        return super(Orderable, self).save(*args, **kwargs)
+

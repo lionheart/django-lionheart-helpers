@@ -92,8 +92,12 @@ def render(fun):
     def wrapper(request, *args, **kwargs):
         context = fun(request, *args, **kwargs)
         if isinstance(context, dict):
-            template = name + ".html"
-            return django_render(request, template, context)
+            template_name = name + ".html"
+            template_name_with_underscores = template_name.replace('_', '-')
+            template = template_loader.select_template(
+                [template_name, template_name_with_underscores]
+            )
+            return django_render(request, template.name, context)
         else:
             return context
 

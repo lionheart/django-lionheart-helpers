@@ -18,6 +18,21 @@ except ImportError:
 
 from django.views.generic.base import TemplateView
 
+class IgnoreFormatString(object):
+    """
+    A simple class which takes a string and will ignore any formatting
+    applied to it
+    """
+    def __init__(self, s):
+        self.s = s
+
+    def __str__(self):
+        return self.s
+
+    def __mod__(self, k):
+        return self
+
+
 class JSONResponse(HttpResponse):
     def __init__(self, content, content_type='application/json', *args, **kwargs):
         encoded_content = json.dumps(content)

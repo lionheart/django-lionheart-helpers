@@ -1,6 +1,7 @@
 import re
 from django import forms
 
+po_box_format = re.compile(r'p\.? *o\.? .+\d+', re.IGNORECASE)
 zip_format = re.compile(r'^\d{5}$')
 zip_plus_four_format = re.compile(r'^\d{5}-\d{4}$')
 

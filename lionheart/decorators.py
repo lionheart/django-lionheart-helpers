@@ -98,7 +98,7 @@ def render(fun):
             template = template_loader.select_template(
                 [template_name, template_name_with_underscores]
             )
-            return django_render(request, template.name, context)
+            return django_render(request, template.template.name, context)
         else:
             return context
 

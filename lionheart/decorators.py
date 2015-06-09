@@ -101,9 +101,9 @@ def render(fun):
 
             template_name = None
             if django.VERSION > (1, 8):
-                template_name = template.name
-            else:
                 template_name = template.template.name
+            else:
+                template_name = template.name
 
             return django_render(request, template.name, context)
         else:

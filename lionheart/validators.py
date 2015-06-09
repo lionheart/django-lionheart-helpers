@@ -6,6 +6,13 @@ zip_format = re.compile(r'^\d{5}$')
 zip_plus_four_format = re.compile(r'^\d{5}-\d{4}$')
 
 def zip_code_validator(value):
+    if not zip_format.match(value) \
+            and not zip_plus_four_format.match(value):
+        raise forms.ValidationError("Zip code is improperly formatted.")
+
+    return value
+
+def validate_zip_code_and_clean(value):
     value = value.strip()
 
     if not zip_format.match(value) \

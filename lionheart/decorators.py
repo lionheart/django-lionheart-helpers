@@ -1,11 +1,10 @@
-import json
 import logging
 from functools import wraps
 
+import django
 from django.shortcuts import render as django_render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.template import loader as template_loader
-from django import get_version
 
 from utils import JSONResponse
 

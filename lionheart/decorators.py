@@ -5,6 +5,7 @@ from functools import wraps
 from django.shortcuts import render as django_render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.template import loader as template_loader
+from django import get_version
 
 from utils import JSONResponse
 
@@ -98,7 +99,14 @@ def render(fun):
             template = template_loader.select_template(
                 [template_name, template_name_with_underscores]
             )
-            return django_render(request, template.template.name, context)
+
+            template_name = None
+            if django.VERSION > (1, 8):
+                template_name = template.name
+            else:
+                template_name = template.template.name
+
+            return django_render(request, template.name, context)
         else:
             return context
 

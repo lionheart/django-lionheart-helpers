@@ -41,8 +41,8 @@ class JSONResponse(HttpResponse):
                 content_type=content_type,
                 status=200, *args, **kwargs)
 
-def timestamped_file_url(prefix):
-    def inner(instance, filename):
+def timestamped_file_url(prefix, filename):
+    def inner(instance):
         r = re.compile(r'[^\S]')
         filename = r.sub('', filename)
         now = datetime.datetime.now()

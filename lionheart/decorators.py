@@ -105,7 +105,7 @@ def render(fun):
             else:
                 template_name = template.name
 
-            return django_render(request, template.name, context)
+            return django_render(request, template_name, context)
         else:
             return context
 

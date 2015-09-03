@@ -29,7 +29,7 @@ def export_as_xls_action(filename, description="Export selected objects as XLS f
                 excludeset = set(exclude)
                 field_names = field_names - excludeset
 
-        response = HttpResponse(mimetype='application/ms-excel')
+        response = HttpResponse(content_type='application/ms-excel')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
 
         book = xlwt.Workbook(encoding="utf-8")
@@ -90,7 +90,7 @@ def export_as_csv_action(filename, description="Export selected objects as CSV f
                 excludeset = set(exclude)
                 field_names = field_names - excludeset
 
-        response = HttpResponse(mimetype='text/csv')
+        response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
 
         writer = csv.writer(response)

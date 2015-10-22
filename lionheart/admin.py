@@ -1,12 +1,14 @@
 import csv
+import operator
 
 from django.http import HttpResponse
 
 import xlwt
 
 # http://djangosnippets.org/snippets/2020/
-def export_as_xls_action(filename, description="Export selected objects as XLS file",
-                         fields=None, additional_fields=[], exclude=None, header=True):
+def export_as_xls_action(filename, description="Export as XLS",
+                         fields=None, additional_fields=[], m2m_fields={},
+                         exclude=None, header=True):
     """
     This function returns an export XLS action
     'fields' and 'exclude' work like in django ModelForm
@@ -35,6 +37,17 @@ def export_as_xls_action(filename, description="Export selected objects as XLS f
         book = xlwt.Workbook(encoding="utf-8")
         sheet = book.add_sheet("Results")
 
+        m2m_field_names = map(operator.itemgetter("name"), m2m_fields)
+        m2m_field_groups = map(operator.itemgetter("group_by_name"), m2m_fields)
+        m2m_field_group_models = map(operator.itemgetter("group_by_model"), m2m_fields)
+
+        m2m_instances_to_field_names = {}
+        for field_name, group_name, Model in zip(m2m_field_names, m2m_field_groups, m2m_field_group_models):
+            for instance in Model.objects.all():
+                m2m_instances_to_field_names[instance] = (field_name, group_name)
+
+        m2m_instances = m2m_instances_to_field_names.keys()
+
         row = 0
         if header:
             column = 0
@@ -43,7 +56,11 @@ def export_as_xls_action(filename, description="Export selected objects as XLS f
                 column += 1
 
             for field_name in additional_fields:
-                sheet.write(row, column, field_name.replace("most_recent_", ""))
+                sheet.write(row, column, field_name)
+                column += 1
+
+            for instance in m2m_instances:
+                sheet.write(row, column, unicode(instance))
                 column += 1
 
             row += 1
@@ -58,6 +75,13 @@ def export_as_xls_action(filename, description="Export selected objects as XLS f
                 sheet.write(row, column, unicode(getattr(obj, field_name)).encode("utf-8"))
                 column += 1
 
+            for instance, (field_name, group_name) in m2m_instances_to_field_names.iteritems():
+                field = getattr(obj, field_name)
+                queryset = field.filter(**{group_name: instance})
+                value = ", ".join(map(str, queryset))
+                sheet.write(row, column, value)
+                column += 1
+
             row += 1
 
         book.save(response)
@@ -66,8 +90,9 @@ def export_as_xls_action(filename, description="Export selected objects as XLS f
     return export_as_xls
 
 # http://djangosnippets.org/snippets/2020/
-def export_as_csv_action(filename, description="Export selected objects as CSV file",
-                         fields=None, additional_fields=[], exclude=None, header=True):
+def export_as_csv_action(filename, description="Export as CSV",
+                         fields=None, additional_fields=[], m2m_fields={},
+                         exclude=None, header=True):
     """
     This function returns an export csv action
     'fields' and 'exclude' work like in django ModelForm
@@ -93,6 +118,17 @@ def export_as_csv_action(filename, description="Export selected objects as CSV f
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
 
+        m2m_field_names = map(operator.itemgetter("name"), m2m_fields)
+        m2m_field_groups = map(operator.itemgetter("group_by_name"), m2m_fields)
+        m2m_field_group_models = map(operator.itemgetter("group_by_model"), m2m_fields)
+
+        m2m_instances_to_field_names = {}
+        for field_name, group_name, Model in zip(m2m_field_names, m2m_field_groups, m2m_field_group_models):
+            for instance in Model.objects.all():
+                m2m_instances_to_field_names[instance] = (field_name, group_name)
+
+        m2m_instances = m2m_instances_to_field_names.keys()
+
         writer = csv.writer(response)
         if header:
             row = []
@@ -101,6 +137,9 @@ def export_as_csv_action(filename, description="Export selected objects as CSV f
 
             for field_name in additional_fields:
                 row.append(field_name)
+
+            for instance in m2m_instances:
+                row.append(unicode(instance))
 
             writer.writerow(row)
 
@@ -111,6 +150,12 @@ def export_as_csv_action(filename, description="Export selected objects as CSV f
 
             for field_name in additional_fields:
                 row.append(unicode(getattr(obj, field_name)).encode("utf-8"))
+
+            for instance, (field_name, group_name) in m2m_instances_to_field_names.iteritems():
+                field = getattr(obj, field_name)
+                queryset = field.filter(**{group_name: instance})
+                value = ", ".join(map(str, queryset))
+                row.append(value)
 
             writer.writerow(row)
         return response

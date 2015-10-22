@@ -68,15 +68,15 @@ def export_as_xls_action(filename, description="Export as XLS",
         for obj in queryset:
             column = 0
             for field_name in field_names:
-                sheet.write(row, column, unicode(getattr(obj, field_name)).encode("utf-8"))
+                sheet.write(row, column, unicode(operator.attrgetter(field_name)(obj)).encode("utf-8"))
                 column += 1
 
             for field_name in additional_fields:
-                sheet.write(row, column, unicode(getattr(obj, field_name)).encode("utf-8"))
+                sheet.write(row, column, unicode(operator.attrgetter(field_name)(obj)).encode("utf-8"))
                 column += 1
 
             for instance, (field_name, group_name) in m2m_instances_to_field_names.iteritems():
-                field = getattr(obj, field_name)
+                field = operator.attrgetter(field_name)(obj)
                 queryset = field.filter(**{group_name: instance})
                 value = ", ".join(map(str, queryset))
                 sheet.write(row, column, value)
@@ -146,13 +146,13 @@ def export_as_csv_action(filename, description="Export as CSV",
         for obj in queryset:
             row = []
             for field_name in field_names:
-                row.append(unicode(getattr(obj, field_name)).encode("utf-8"))
+                row.append(unicode(operator.attrgetter(field_name)(obj)).encode("utf-8"))
 
             for field_name in additional_fields:
-                row.append(unicode(getattr(obj, field_name)).encode("utf-8"))
+                row.append(unicode(operator.attrgetter(field_name)(obj)).encode("utf-8"))
 
             for instance, (field_name, group_name) in m2m_instances_to_field_names.iteritems():
-                field = getattr(obj, field_name)
+                field = operator.attrgetter(field_name)(obj)
                 queryset = field.filter(**{group_name: instance})
                 value = ", ".join(map(str, queryset))
                 row.append(value)

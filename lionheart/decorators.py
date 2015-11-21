@@ -6,10 +6,9 @@ from django.shortcuts import render as django_render
 from django.http import HttpResponseRedirect
 from django.template import loader as template_loader
 
-from utils import JSONResponse
-
-import forms
-import settings
+from lionheart.utils import JSONResponse
+from lionheart import forms
+from lionheart import settings
 
 logger = logging.getLogger(__name__)
 

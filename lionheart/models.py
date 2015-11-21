@@ -1,5 +1,4 @@
 from hashlib import md5
-import bcrypt
 import random
 import re
 
@@ -9,16 +8,6 @@ from django.template.loader import render_to_string
 
 import settings
 from django.conf import settings as django_settings
-
-class PasswordHelper(object):
-    def __init__(self, password):
-        self.password = password
-
-    def __eq__(self, raw_password):
-        return self.password == bcrypt.hashpw(raw_password, self.password)
-
-    def __repr__(self):
-        return "<Password: {}>".format(self.password)
 
 
 class OptionalCharField(models.CharField):
@@ -51,71 +40,6 @@ class CreatedMixin(models.Model):
 
     class Meta():
         abstract = True
-
-
-def BcryptMixin(rounds=10):
-    """
-    Class factory that returns an abstract Django model mixin that adds tools
-    to set and check bcrypt-secured passwords on user models.
-
-    :param rounds: the number of log rounds to use for the salt generator
-    :type rounds: int
-    """
-
-    class inner(models.Model):
-        _password = models.CharField(max_length=60)
-        """ Salted bcrypt passwords are never longer than 60 characters """
-
-        class Meta():
-            abstract = True
-
-        @property
-        def password(self):
-            return PasswordHelper(self._password)
-
-        @password.setter
-        def password(self, raw_password):
-            """
-            Set the password of the user to `raw_password`.
-
-            :param raw_password: text password
-            :type raw_password: str
-            """
-            password = bcrypt.hashpw(raw_password, bcrypt.gensalt(rounds))
-            self._password = password
-            return True
-
-        @password.deleter
-        def password(self, new_password):
-            self._password = None
-
-        def check_password(self, raw_password):
-            """
-            Check that the user's password matches the given string.
-
-            :param raw_password: text string
-            :type raw_password: str
-            """
-            provided_password = bcrypt.hashpw(raw_password, self.password)
-            return provided_password == self.password
-
-        def is_authenticated(self):
-            """ Instantiated users with the BcryptMixin are always authenticated """
-            return True
-
-        @property
-        def is_staff(self):
-            return False
-
-        @property
-        def is_active(self):
-            return True
-
-        @property
-        def is_superuser(self):
-            return False
-
-    return inner
 
 
 def PasswordResetMixin(template="emails/password_reset.txt",

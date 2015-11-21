@@ -16,9 +16,6 @@ setup(
     description='Django decorators and some other utilities.',
     author=metadata.__author__,
     author_email=metadata.__email__,
-    packages=['lionheart'],
-    install_requires=[
-        'django'
-    ],
+    packages=['lionheart']
 )
 

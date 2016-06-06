@@ -172,3 +172,56 @@ def formify(form_obj, url='/', save=False, tipsy_errors=False):
         return wrapper
     return renderer
 
+
+def create_redirect_if_required(fun):
+    @functools.wraps(fun)
+    def inner(self, *args, **kwargs):
+        Model = self.__class__
+
+        # Compare previous slug with new slug.
+        try:
+            unchanged_self = Model.objects.get(id=self.id)
+        except Model.DoesNotExist:
+            # There is no previous instance of the object, so we don't need to
+            # do anything.
+            pass
+        else:
+            old_path = unchanged_self.get_absolute_url()
+            new_path = self.get_absolute_url()
+
+            if old_path != new_path:
+                # If the URL has changed, set up a redirect.
+                with transaction.atomic():
+                    # Update all relevant redirects to point towards the
+                    # updated new_path.
+                    previous_redirects = redirect_models.Redirect.objects \
+                            .filter(new_path=old_path)
+                    previous_redirects.update(new_path=new_path)
+
+                    # If new_path is an existing old_path in another Redirect
+                    # object, we delete that previous object to avoid a
+                    # redirect loop.
+                    redirect_models.Redirect.objects \
+                            .filter(old_path=new_path) \
+                            .delete()
+
+                    params = {
+                        'site_id': 1,
+                        'old_path': old_path,
+                        'new_path': new_path
+                    }
+
+                    try:
+                        redirect_models.Redirect.objects.create(**params)
+                    except IntegrityError:
+                        pass
+
+                    fun(self, *args, **kwargs)
+
+                    # We return here so that the super call to save below does
+                    # not get called.
+                    return
+
+        fun(self, *args, **kwargs)
+
+    return inner

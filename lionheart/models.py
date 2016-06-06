@@ -20,6 +20,7 @@ class OptionalCharField(models.CharField):
         kwargs['blank'] = True
         super(OptionalCharField, self).__init__(*args, **kwargs)
 
+
 class OptionalEmailField(models.EmailField):
     """
     Shortcut class that adds both `null` and `blank` attributes to
@@ -29,6 +30,7 @@ class OptionalEmailField(models.EmailField):
         kwargs['null'] = True
         kwargs['blank'] = True
         super(OptionalEmailField, self).__init__(*args, **kwargs)
+
 
 class CreatedMixin(models.Model):
     """
@@ -144,3 +146,10 @@ class Orderable(models.Model):
 
         return super(Orderable, self).save(*args, **kwargs)
 
+
+class SlugField(models.SlugField):
+    def __init__(self, *args, **kwargs):
+        help_text = "Lowercase with no punctuation and any whitespace replaced by dashes."
+        kwargs['help_text'] = help_text
+        kwargs['unique'] = True
+        super(SlugField, self).__init__(*args, **kwargs)

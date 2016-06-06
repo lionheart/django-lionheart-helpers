@@ -41,8 +41,9 @@ class JSONResponse(HttpResponse):
                 content_type=content_type,
                 status=200, *args, **kwargs)
 
-def timestamped_file_url(prefix, filename):
-    def inner(instance):
+
+def timestamped_file_url(prefix):
+    def inner(instance, filename):
         r = re.compile(r'[^\S]')
         filename = r.sub('', filename)
         now = datetime.datetime.now()
@@ -50,6 +51,7 @@ def timestamped_file_url(prefix, filename):
         return '{0}/{1.year:04}/{1.month:02}/{1.day:02}/{2}/{3}'.format( \
                 prefix, now, timestamp, filename)
     return inner
+
 
 def slugify(phrase, simple=True):
     """
@@ -89,6 +91,7 @@ def slugify(phrase, simple=True):
         phrase = dashes.sub('-', phrase)
         phrase = phrase.strip('-')
         return phrase
+
 
 def simple_url(path, view=None):
     """

@@ -32,6 +32,8 @@ except ImportError:
 
 from django.views.generic.base import TemplateView
 
+non_url_name_safe_characters = re.compile(r'[^a-z-]')
+
 class IgnoreFormatString(object):
     """
     A simple class which takes a string and will ignore any formatting
@@ -107,33 +109,24 @@ def slugify(phrase, simple=True):
         return phrase
 
 
-def simple_url(path, view=None):
+def simple_url(path, view, *args, **kwargs):
     """
     Shortcut method that generates a url for paths which map directly to view
     names.
-
-    For example, the following will map "/home" to the `home` view.
-
-        simple_url('home')
-
-    If the you would like your URL to be mapped to a different path than the
-    name of your view, just provide the view name or function as the second
-    parameter. E.g.,
 
         simple_url('auth/login', 'login_view')
 
     :param path: the URL path that you would like to map to
     :type path: str
 
-    :param view: a view name or function (optional)
+    :param view: a view name or function
     :type view: str or function
     """
-    if not view:
-        view = path.replace('/', '_')
+    if 'name' not in kwargs:
+        kwargs['name'] = non_url_name_safe_characters.sub('-', path).strip('-')
 
-    return url(r'^%s$' % path,
-            view,
-            name=path.replace('/', '-'))
+    return url(r'^{}$'.format(path), view, *args, **kwargs)
+
 
 def template_url(path):
     """
@@ -147,11 +140,13 @@ def template_url(path):
     :param path: the URL path that you would like to the template to
     :type path: str
     """
-    return url(r'^%s$' % path,
-            TemplateView.as_view(template_name=path + '.html'),
-            name=path.replace('/', '-'))
+    return url(
+        r'^{}$'.format(path),
+        TemplateView.as_view(template_name='{}.html'.format(path)),
+        name=path.replace('/', '-')
+    )
 
-def home_url(logged_out_name, logged_in_name=None, app_name='app'):
+def home_url(logged_out_view, logged_in_view=None):
     """
     Shortcut method that serves two different views at '/', depending
     on whether the user is logged in or logged out.
@@ -172,25 +167,16 @@ def home_url(logged_out_name, logged_in_name=None, app_name='app'):
     :param app_name: the Django application used to serve the views
     :type app_name: str
     """
-    app = __import__(app_name, fromlist=['views'])
-    logged_out_view = getattr(app.views, logged_out_name)
-
-    if logged_in_name:
-        logged_in_view = getattr(app.views, logged_in_name)
-
+    if logged_in_view is None:
+        return url(r'^$', logged_out_view, name='home')
+    else:
         def authentication_redirect(request):
             if request.user.is_authenticated():
                 return logged_in_view(request)
             else:
                 return logged_out_view(request)
 
-        return url(r'^$',
-                authentication_redirect,
-                name='home')
-    else:
-        return url(r'^$',
-                logged_out_view,
-                name='home')
+        return url(r'^$', authentication_redirect, name='home')
 
 def status_204(request):
     """ Simple view which returns an empty 204 No Content response """

@@ -167,3 +167,65 @@ class SlugField(models.SlugField):
         kwargs['help_text'] = help_text
         kwargs['unique'] = True
         super(SlugField, self).__init__(*args, **kwargs)
+
+
+class SoftDeleteMixin(models.Model):
+    """
+    Abstract Django model mixin to add 'deleted' column
+    This column is set to OK/DELETED which the SoftDeleteManager
+    and SoftDeleteQuerySet use.
+    """
+    OK = 0
+    DELETED = 1
+
+    STATE_CHOICES = (
+        (OK, "ok"),
+        (DELETED, "deleted"),
+    )
+
+    deleted = models.IntegerField(choices=STATE_CHOICES, default=OK)
+
+    def delete(self):
+        self.deleted = DELETED
+        self.save()
+
+    def remove_permanently(self, *args, **kwargs):
+        super(SoftDeleteMixin, self).delete(*args, **kwargs)
+
+    class Meta:
+        abstract = True
+
+class SoftDeleteQuerySet(models.query.QuerySet):
+    """
+    SubClass of the standard Django QuerySet that ignores soft-deleted rows,
+    and overwrites the delete function to update with soft-delete instead
+    """
+    def delete(self):
+        super(SoftDeleteQuerySet, self).update(deleted=SoftDeleteMixin.DELETED)
+
+    def remove_permanently(self):
+        super(SoftDeleteQuerySet, self).delete()
+
+    def deleted(self):
+        super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
+
+class SoftDeleteManager(models.Manager):
+    """
+    Soft Delete Object Manager that uses the SoftDeleteQuerySet so when you use objects.all(),
+    rows with deleted=DELETED will not be returned!
+    Also adds propeties to see deleted/active rows
+    """
+    def get_queryset(self):
+        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.OK)
+
+    def remove_permanently(self, instance):
+        return self.get_queryset().remove_permanently()
+
+    def _get_active(self):
+        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.OK)
+
+    def _get_deleted(self):
+        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.DELETED)
+
+    active = property(_get_active)
+    deleted = property(_get_deleted)

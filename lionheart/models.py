@@ -216,16 +216,19 @@ class SoftDeleteManager(models.Manager):
     Also adds propeties to see deleted/active rows
     """
     def get_queryset(self):
-        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.OK)
+        return \
+            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.OK)
 
     def remove_permanently(self, instance):
         return self.get_queryset().remove_permanently()
 
     def _get_active(self):
-        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.OK)
+        return \
+            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.OK)
 
     def _get_deleted(self):
-        return SoftDeleteQuerySet.filter(deleted=SoftDeleteMixin.DELETED)
+        return \
+            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.DELETED)
 
     active = property(_get_active)
     deleted = property(_get_deleted)

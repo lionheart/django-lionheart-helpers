@@ -201,13 +201,13 @@ class SoftDeleteQuerySet(models.query.QuerySet):
     and overwrites the delete function to update with soft-delete instead
     """
     def delete(self):
-        super(SoftDeleteQuerySet, self).update(deleted=SoftDeleteMixin.DELETED)
+        return super(SoftDeleteQuerySet, self).update(deleted=SoftDeleteMixin.DELETED)
 
     def remove_permanently(self):
-        super(SoftDeleteQuerySet, self).delete()
+        return super(SoftDeleteQuerySet, self).delete()
 
     def deleted(self):
-        super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
+        return super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
 
 class SoftDeleteManager(models.Manager):
     """
@@ -217,18 +217,17 @@ class SoftDeleteManager(models.Manager):
     """
     def get_queryset(self):
         return \
-            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.OK)
+            SoftDeleteQuerySet(model=self.model, using=self._db).filter(deleted=SoftDeleteMixin.OK)
 
     def remove_permanently(self, instance):
         return self.get_queryset().remove_permanently()
 
     def _get_active(self):
-        return \
-            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.OK)
+        return self.get_queryset()
 
     def _get_deleted(self):
         return \
-            SoftDeleteQuerySet(super(SoftDeleteManager, self)).filter(deleted=SoftDeleteMixin.DELETED)
+            SoftDeleteQuerySet(model=self.model, using=self._db).filter(deleted=SoftDeleteMixin.DELETED)
 
     active = property(_get_active)
     deleted = property(_get_deleted)

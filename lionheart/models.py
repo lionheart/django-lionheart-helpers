@@ -238,7 +238,7 @@ class SoftDeleteManager(models.Manager):
         return qs
 
     def remove_permanently(self):
-        return self.get_queryset().remove_permanently()
+        return super(SoftDeleteManager, self).get_queryset().delete()
 
      def get(self, *args, **kwargs):
         if 'pk' in kwargs or 'id' in kwargs:

@@ -186,7 +186,7 @@ class SoftDeleteMixin(models.Model):
     deleted = models.IntegerField(choices=STATE_CHOICES, default=OK)
 
     def delete(self, *args, **kwargs):
-        self.deleted = DELETED
+        self.deleted = self.DELETED
         self.save()
 
     def remove_permanently(self, *args, **kwargs):

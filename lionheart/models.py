@@ -242,7 +242,7 @@ class SoftDeleteManager(models.Manager):
     def remove_permanently(self):
         return super(SoftDeleteManager, self).get_queryset().delete()
 
-     def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs):
         return self._queryset_from_kwarg_conditions(kwargs).get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):

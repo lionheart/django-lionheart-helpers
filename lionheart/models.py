@@ -185,8 +185,8 @@ class SoftDeleteMixin(models.Model):
 
     deleted = models.IntegerField(choices=STATE_CHOICES, default=OK)
 
-    def delete(self):
-        self.deleted = DELETED
+    def delete(self, *args, **kwargs):
+        self.deleted = self.DELETED
         self.save()
 
     def remove_permanently(self, *args, **kwargs):
@@ -200,14 +200,24 @@ class SoftDeleteQuerySet(models.query.QuerySet):
     SubClass of the standard Django QuerySet that ignores soft-deleted rows,
     and overwrites the delete function to update with soft-delete instead
     """
-    def delete(self):
-        return super(SoftDeleteQuerySet, self).update(deleted=SoftDeleteMixin.DELETED)
+    def delete(self, using='default', *args, **kwargs):
+        for model in self:
+            model.delete(using, *args, **kwargs)
 
     def remove_permanently(self):
         return super(SoftDeleteQuerySet, self).delete()
 
     def deleted(self):
-        return super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
+        qs = super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
+
+    def all_with_deleted(self):
+        qs = super(SoftDeleteQuerySet, self).all()
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
 
 class SoftDeleteManager(models.Manager):
     """
@@ -215,19 +225,46 @@ class SoftDeleteManager(models.Manager):
     rows with deleted=DELETED will not be returned!
     Also adds propeties to see deleted/active rows
     """
-    def get_queryset(self):
-        return \
-            SoftDeleteQuerySet(model=self.model, using=self._db).filter(deleted=SoftDeleteMixin.OK)
+    def all_with_deleted(self):
+        qs = super(SoftDeleteManager, self).get_queryset()
+        if hasattr(self, 'core_filters'):  # it's a RelatedManager
+            qs = qs.filter(**self.core_filters)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
 
-    def remove_permanently(self, instance):
-        return self.get_queryset().remove_permanently()
+    def get_queryset(self):
+        qs = super(SoftDeleteManager, self).get_queryset().filter(deleted=SoftDeleteMixin.OK)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
+
+    def remove_permanently(self):
+        return super(SoftDeleteManager, self).get_queryset().delete()
+
+     def get(self, *args, **kwargs):
+        return self._queryset_from_kwarg_conditions(kwargs).get(*args, **kwargs)
+
+    def filter(self, *args, **kwargs):
+        qs = self._queryset_from_kwarg_conditions(kwargs).filter(*args, **kwargs)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
+
+    def _queryset_from_kwarg_conditions(self, kwargs):
+        if 'pk' in kwargs or 'id' in kwargs:
+            return self.all_with_deleted()
+        else:
+            return self.get_queryset()
 
     def _get_active(self):
         return self.get_queryset()
 
     def _get_deleted(self):
-        return \
-            SoftDeleteQuerySet(model=self.model, using=self._db).filter(deleted=SoftDeleteMixin.DELETED)
+        qs = super(SoftDeleteManager, self).get_queryset().filter(deleted=SoftDeleteMixin.DELETED)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
+        qs.__class__ = SoftDeleteQuerySet
+        return qs
 
     active = property(_get_active)
     deleted = property(_get_deleted)

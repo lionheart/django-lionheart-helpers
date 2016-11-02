@@ -209,11 +209,13 @@ class SoftDeleteQuerySet(models.query.QuerySet):
 
     def deleted(self):
         qs = super(SoftDeleteQuerySet, self).filter(deleted=SoftDeleteMixin.DELETED)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 
     def all_with_deleted(self):
         qs = super(SoftDeleteQuerySet, self).all()
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 
@@ -227,11 +229,13 @@ class SoftDeleteManager(models.Manager):
         qs = super(SoftDeleteManager, self).get_queryset()
         if hasattr(self, 'core_filters'):  # it's a RelatedManager
             qs = qs.filter(**self.core_filters)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 
     def get_queryset(self):
         qs = super(SoftDeleteManager, self).get_queryset().filter(deleted=SoftDeleteMixin.OK)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 
@@ -239,14 +243,15 @@ class SoftDeleteManager(models.Manager):
         return super(SoftDeleteManager, self).get_queryset().delete()
 
      def get(self, *args, **kwargs):
-        return self._queryset_from_kwarg_contidtions(kwargs).get(*args, **kwargs)
+        return self._queryset_from_kwarg_conditions(kwargs).get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
-        qs = self._queryset_from_kwarg_contidtions(kwargs).filter(*args, **kwargs)
+        qs = self._queryset_from_kwarg_conditions(kwargs).filter(*args, **kwargs)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 
-    def _queryset_from_kwarg_contidtions(self, kwargs):
+    def _queryset_from_kwarg_conditions(self, kwargs):
         if 'pk' in kwargs or 'id' in kwargs:
             return self.all_with_deleted()
         else:
@@ -257,6 +262,7 @@ class SoftDeleteManager(models.Manager):
 
     def _get_deleted(self):
         qs = super(SoftDeleteManager, self).get_queryset().filter(deleted=SoftDeleteMixin.DELETED)
+        # Cast qs to SoftDeleteQuery because super() returns a plain ol' QuerySet
         qs.__class__ = SoftDeleteQuerySet
         return qs
 

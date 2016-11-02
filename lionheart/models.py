@@ -201,8 +201,6 @@ class SoftDeleteQuerySet(models.query.QuerySet):
     and overwrites the delete function to update with soft-delete instead
     """
     def delete(self, using='default', *args, **kwargs):
-        if not len(self):
-            return
         for model in self:
             model.delete(using, *args, **kwargs)
 
@@ -241,18 +239,18 @@ class SoftDeleteManager(models.Manager):
         return super(SoftDeleteManager, self).get_queryset().delete()
 
      def get(self, *args, **kwargs):
-        if 'pk' in kwargs or 'id' in kwargs:
-            return self.all_with_deleted().get(*args, **kwargs)
-        else:
-            return self.get_queryset().get(*args, **kwargs)
+        return self._queryset_from_kwarg_contidtions(kwargs).get(*args, **kwargs)
 
     def filter(self, *args, **kwargs):
-        if 'pk' in kwargs or 'id' in kwargs:
-            qs = self.all_with_deleted().filter(*args, **kwargs)
-        else:
-            qs = self.get_queryset().filter(*args, **kwargs)
+        qs = self._queryset_from_kwarg_contidtions(kwargs).filter(*args, **kwargs)
         qs.__class__ = SoftDeleteQuerySet
         return qs
+
+    def _queryset_from_kwarg_contidtions(self, kwargs):
+        if 'pk' in kwargs or 'id' in kwargs:
+            return self.all_with_deleted()
+        else:
+            return self.get_queryset()
 
     def _get_active(self):
         return self.get_queryset()

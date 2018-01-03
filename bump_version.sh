@@ -7,5 +7,5 @@ if [ "$1" != "" ]; then
   git tag $1
   git push origin master
   git push --tags
-  make
+  make publish
 fi

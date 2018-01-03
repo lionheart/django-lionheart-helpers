@@ -22,13 +22,18 @@ import unicodedata
 
 from django.http import HttpResponse
 from django.utils.functional import lazy
-from django.core.urlresolvers import reverse
+
 try:
-    # Django 1.5
-    from django.conf.urls.defaults import url
+    from django.core.urlresolvers import reverse
 except ImportError:
+    from django.urls import reverse
+
+try:
     # Django 1.6+
     from django.conf.urls import url
+except ImportError:
+    # Django 1.5
+    from django.conf.urls.defaults import url
 
 from django.views.generic.base import TemplateView
 

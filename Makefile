@@ -1,4 +1,4 @@
-# Copyright 2015-2017 Lionheart Software LLC
+# Copyright 2015-2018 Lionheart Software LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,5 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-publish:
-	python setup.py sdist upload --sign
+all: clean test publish
+
+clean:
+	rm -rf dist/
+
+test:
+	python setup.py test
+
+publish: clean
+	python setup.py bdist_wheel --universal
+	python3 setup.py bdist_wheel --universal
+	gpg --detach-sign -a dist/*.whl
+	twine upload dist/*
+

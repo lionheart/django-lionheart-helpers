@@ -191,7 +191,12 @@ def random_digits(length):
     return ''.join(random.choice(string.digits) for _ in range(length))
 
 def random_string(length):
-    alphanumeric = string.letters + string.digits
+    try:
+        letters = string.letters
+    except AttributeError:
+        letters = string.ascii_letters
+
+    alphanumeric = letters + string.digits
     return ''.join(random.choice(alphanumeric) for _ in range(length))
 
 
